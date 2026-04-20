@@ -62,7 +62,7 @@ public class BungeeCordSpoof extends Module {
     }
 
     private String getProperty() {
-        PropertyMap propertyMap = mc.getGameProfile().properties();
+        PropertyMap propertyMap = mc.getGameProfile().getProperties();
         return "\0" + GSON.toJson(propertyMap.values().toArray());
     }
 }

@@ -2,7 +2,7 @@ package anticope.rejects.modules;
 
 import anticope.rejects.MeteorRejectsAddon;
 import meteordevelopment.meteorclient.events.Cancellable;
-import meteordevelopment.meteorclient.events.meteor.MouseClickEvent;
+import meteordevelopment.meteorclient.events.meteor.MouseButtonEvent;
 import meteordevelopment.meteorclient.settings.BoolSetting;
 import meteordevelopment.meteorclient.settings.Setting;
 import meteordevelopment.meteorclient.settings.SettingGroup;
@@ -38,9 +38,9 @@ public class ShieldBypass extends Module {
     }
 
     @EventHandler
-    private void onMouseButton(MouseClickEvent event) {
+    private void onMouseButton(MouseButtonEvent event) {
         if (Modules.get().isActive(KillAura.class)) return;
-        if (mc.currentScreen == null && !mc.player.isUsingItem() && event.action == KeyAction.Press && event.button() == GLFW_MOUSE_BUTTON_LEFT) {
+        if (mc.currentScreen == null && !mc.player.isUsingItem() && event.action == KeyAction.Press && event.button == GLFW_MOUSE_BUTTON_LEFT) {
             if (mc.crosshairTarget instanceof EntityHitResult result) {
                 bypass(result.getEntity(), event);
             }
@@ -88,7 +88,7 @@ public class ShieldBypass extends Module {
 
             mc.getNetworkHandler().sendPacket(PlayerInteractEntityC2SPacket.attack(e, mc.player.isSneaking()));
             mc.getNetworkHandler().sendPacket(new HandSwingC2SPacket(mc.player.getActiveHand()));
-            mc.player.resetTicksSinceLastAttack();
+            mc.player.resetLastAttackedTicks();
 
             mc.getNetworkHandler().sendPacket(new PlayerMoveC2SPacket.PositionAndOnGround(mc.player.getX(), mc.player.getY(), mc.player.getZ(), true, mc.player.horizontalCollision));
         }

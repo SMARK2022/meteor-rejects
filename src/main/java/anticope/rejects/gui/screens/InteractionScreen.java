@@ -158,7 +158,7 @@ public class InteractionScreen extends Screen {
                 var script = Compiler.compile(result);
                 try {
                     var section = MeteorStarscript.ss.run(script);
-                    client.setScreen(new ChatScreen(section.text, false));
+                    client.setScreen(new ChatScreen(section.text));
                 } catch (StarscriptError err) {
                     MeteorStarscript.printChatError(err);
                 }
@@ -221,7 +221,7 @@ public class InteractionScreen extends Screen {
         double x = (double) this.client.getWindow().getWidth() / 2;
         double y = (double) this.client.getWindow().getHeight() / 2;
         // InputUtil.setCursorParameters(this.client.getWindow().getHandle(), mode, x, y);
-        InputUtil.setCursorParameters(this.client.getWindow(), mode, x, y);
+        InputUtil.setCursorParameters(this.client.getWindow().getHandle(), mode, x, y);
     }
 
     public void tick() {
@@ -354,7 +354,7 @@ public class InteractionScreen extends Screen {
     private class StaticListener {
         @EventHandler
         private void onKey(KeyEvent event) {
-            if (event.key() == client.options.sneakKey.getDefaultKey().getCode()) {
+            if (event.key == client.options.sneakKey.getDefaultKey().getCode()) {
                 client.setCameraEntity(client.player);
                 event.cancel();
                 MeteorClient.EVENT_BUS.unsubscribe(this);

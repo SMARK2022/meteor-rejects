@@ -9,7 +9,6 @@ import net.minecraft.client.network.LegacyServerPinger;
 import net.minecraft.client.network.ServerAddress;
 import net.minecraft.network.ClientConnection;
 import net.minecraft.network.DisconnectionInfo;
-import net.minecraft.network.NetworkingBackend;
 import net.minecraft.network.listener.ClientQueryPacketListener;
 import net.minecraft.network.packet.c2s.query.QueryPingC2SPacket;
 import net.minecraft.network.packet.c2s.query.QueryRequestC2SPacket;
@@ -65,7 +64,7 @@ public class ServerListPinger {
         if (address.isEmpty()) {
             return;
         }
-        final ClientConnection clientConnection = ClientConnection.connect(address.get(), NetworkingBackend.remote(false), (MultiValueDebugSampleLogImpl) null);
+        final ClientConnection clientConnection = ClientConnection.connect(address.get(), false, (MultiValueDebugSampleLogImpl) null);
 
         failedToConnect = false;
         this.clientConnections.add(clientConnection);
@@ -145,8 +144,7 @@ public class ServerListPinger {
 
     private void ping(final MServerInfo serverInfo) {
         final ServerAddress serverAddress = ServerAddress.parse(serverInfo.address);
-        NetworkingBackend backend = NetworkingBackend.remote(false);
-        new Bootstrap().group(backend.getEventLoopGroup()).handler(new ChannelInitializer<>() {
+        new Bootstrap().group(ClientConnection.CLIENT_IO_GROUP.get()).handler(new ChannelInitializer<>() {
             @Override
             protected void initChannel(Channel ch) throws Exception {
                 try {

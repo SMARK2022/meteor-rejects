@@ -51,8 +51,8 @@ public class AntiCrash extends Module {
                 cancel(event);
         } else if (event.packet instanceof EntityVelocityUpdateS2CPacket packet) {
             // velocity
-            if (packet.getVelocity().x > 1000 || packet.getVelocity().y > 1000 || packet.getVelocity().z > 1000
-                    || packet.getVelocity().x < -1000 || packet.getVelocity().y  < -1000 || packet.getVelocity().z < -1000
+            if (packet.getVelocityX() > 1000 || packet.getVelocityY() > 1000 || packet.getVelocityZ() > 1000
+                    || packet.getVelocityX() < -1000 || packet.getVelocityY()  < -1000 || packet.getVelocityZ() < -1000
             ) cancel(event);
         }
     }

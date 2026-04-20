@@ -11,7 +11,6 @@ import net.minecraft.component.ComponentChanges;
 import net.minecraft.component.DataComponentTypes;
 import net.minecraft.component.type.NbtComponent;
 import net.minecraft.entity.EntityType;
-import net.minecraft.entity.TypedEntityData;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
@@ -101,10 +100,11 @@ public class GiveCommand extends Command {
             invisEffect.putBoolean("show_particles", false);
             effects.add(invisEffect);
             tag.put("active_effects", effects);
+            tag.putString("id", "minecraft:wither");
 
             var changes = ComponentChanges.builder()
                     .add(DataComponentTypes.CUSTOM_NAME, Text.literal(message))
-                    .add(DataComponentTypes.ENTITY_DATA, TypedEntityData.create(EntityType.WITHER, tag))
+                    .add(DataComponentTypes.ENTITY_DATA, NbtComponent.of(tag))
                     .build();
             stack.applyChanges(changes);
 
@@ -118,7 +118,7 @@ public class GiveCommand extends Command {
             ItemStack itemStack = new ItemStack(Items.PLAYER_HEAD);
 
             var changes = ComponentChanges.builder()
-                    .add(DataComponentTypes.PROFILE, net.minecraft.component.type.ProfileComponent.ofStatic(new GameProfile(getUUID(playerName), playerName)))
+                    .add(DataComponentTypes.PROFILE, new net.minecraft.component.type.ProfileComponent(new GameProfile(getUUID(playerName), playerName)))
                     .build();
 
             itemStack.applyChanges(changes);
@@ -148,10 +148,11 @@ public class GiveCommand extends Command {
         tag.putBoolean("Invulnerable", true);
         tag.putBoolean("NoGravity", true);
         tag.putBoolean("CustomNameVisible", true);
+        tag.putString("id", "minecraft:armor_stand");
 
         var changes = ComponentChanges.builder()
                 .add(DataComponentTypes.CUSTOM_NAME, Text.literal(message))
-                .add(DataComponentTypes.ENTITY_DATA, TypedEntityData.create(EntityType.ARMOR_STAND, tag))
+                .add(DataComponentTypes.ENTITY_DATA, NbtComponent.of(tag))
                 .build();
 
         stack.applyChanges(changes);

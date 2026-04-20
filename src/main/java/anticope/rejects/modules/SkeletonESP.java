@@ -67,7 +67,7 @@ public class SkeletonESP extends Module {
             PlayerEntity player = (PlayerEntity) entity;
 
             Vec3d footPos = getEntityRenderPosition(player, tickDelta);
-            PlayerEntityRenderer livingEntityRenderer = (PlayerEntityRenderer) mc.getEntityRenderDispatcher().getRenderer(player);
+            PlayerEntityRenderer livingEntityRenderer = (PlayerEntityRenderer)(Object) mc.getEntityRenderDispatcher().getRenderer(player);
             PlayerEntityModel playerModel = (PlayerEntityModel) livingEntityRenderer.getModel();
 
             float bodyYaw = MathHelper.lerpAngleDegrees(tickDelta, player.lastBodyYaw, player.bodyYaw);

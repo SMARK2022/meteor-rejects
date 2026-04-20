@@ -34,7 +34,7 @@ public class GamemodeNotifier extends Module {
                 GameMode gameMode = entry.gameMode();
                 if (entry1.getGameMode() != gameMode) {
                     if (!gamemodes.get().contains(gameMode)) continue;
-                    info("Player %s changed gamemode to %s", entry1.getProfile().name(), entry.gameMode());
+                    info("Player %s changed gamemode to %s", entry1.getProfile().getName(), entry.gameMode());
                 }
             }
         }

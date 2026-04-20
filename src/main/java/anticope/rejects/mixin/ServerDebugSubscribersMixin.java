@@ -1,18 +1,7 @@
 package anticope.rejects.mixin;
 
-import net.minecraft.server.debug.SubscriberTracker;
-import net.minecraft.server.network.ServerPlayerEntity;
-import org.spongepowered.asm.mixin.Mixin;
-import org.spongepowered.asm.mixin.injection.At;
-import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
-
-@Mixin(SubscriberTracker.class)
+// SubscriberTracker does not exist in MC 1.21.8 (added in 1.21.11).
+// This mixin is a stub so it compiles but is excluded from meteor-rejects.mixins.json.
 public class ServerDebugSubscribersMixin {
-
-    @Inject(method = "canSubscribe", at = @At("HEAD"), cancellable = true)
-    private void bypassPermissionCheck(ServerPlayerEntity player, CallbackInfoReturnable<Boolean> cir) {
-        cir.setReturnValue(true);
-    }
 }
 

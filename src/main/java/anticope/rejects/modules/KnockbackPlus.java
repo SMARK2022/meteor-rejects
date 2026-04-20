@@ -16,7 +16,6 @@ import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
 import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.Vec3d;
-import org.jspecify.annotations.NonNull;
 
 public class KnockbackPlus extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -37,11 +36,11 @@ public class KnockbackPlus extends Module {
         if (event.packet instanceof PlayerInteractEntityC2SPacket packet) {
             packet.handle(new PlayerInteractEntityC2SPacket.Handler() {
                 @Override
-                public void interact(@NonNull Hand interactionHand) {
+                public void interact(Hand interactionHand) {
                 }
 
                 @Override
-                public void interactAt(@NonNull Hand interactionHand, @NonNull Vec3d vec3) {
+                public void interactAt(Hand interactionHand, Vec3d vec3) {
                 }
 
                 @Override

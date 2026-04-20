@@ -69,7 +69,7 @@ public class ColorSigns extends Module {
 
     private void checkWarning() {
         assert mc.player != null;
-        MinecraftServer server = mc.player.getEntityWorld().getServer();
+        MinecraftServer server = mc.player.getWorld().getServer();
         if (server == null) return;
         String brand = server.getServerModName();
         if (brand == null) return;

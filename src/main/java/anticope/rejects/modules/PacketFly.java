@@ -8,7 +8,7 @@ import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.player.PlayerUtils;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.entity.EntityPosition;
+import net.minecraft.entity.player.PlayerPosition;
 import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket;
 import net.minecraft.network.packet.c2s.play.TeleportConfirmC2SPacket;
 import net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket;
@@ -153,9 +153,9 @@ public class PacketFly extends Module {
     public void onPacketReceive(PacketEvent.Receive event) {
         if (event.packet instanceof PlayerPositionLookS2CPacket && !(mc.player == null || mc.world == null)) {
             PlayerPositionLookS2CPacket packet = (PlayerPositionLookS2CPacket) event.packet;
-            EntityPosition oldPos = packet.change();
+            PlayerPosition oldPos = packet.change();
             if (setYaw.get()) {
-                EntityPosition newPos = new EntityPosition(oldPos.position(), oldPos.deltaMovement(), mc.player.getYaw(), mc.player.getPitch());
+                PlayerPosition newPos = new PlayerPosition(oldPos.position(), oldPos.deltaMovement(), mc.player.getYaw(), mc.player.getPitch());
                 event.packet = PlayerPositionLookS2CPacket.of(
                         packet.teleportId(),
                         newPos,

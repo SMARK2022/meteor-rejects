@@ -37,7 +37,7 @@ public class CustomYggdrasilAccount extends Account<CustomYggdrasilAccount> {
         try {
             CustomYggdrasilLogin.LocalYggdrasilAuthenticationService service = new CustomYggdrasilLogin.LocalYggdrasilAuthenticationService(java.net.Proxy.NO_PROXY, server);
             MinecraftSessionService sessService = new CustomYggdrasilLogin.LocalYggdrasilMinecraftSessionService(service, service.server);
-            applyLoginEnvironment(service);
+            applyLoginEnvironment(service, sessService);
 
             Session session = CustomYggdrasilLogin.login(name, password, server);
             setSession(session);

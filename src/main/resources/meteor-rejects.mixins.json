@@ -4,7 +4,6 @@
   "compatibilityLevel": "JAVA_21",
   "client": [
     "ClientCommonNetworkHandlerMixin",
-    "ClientDebugSubscriberMixin",
     "ClientPlayerInteractionManagerMixin",
     "ClientPlayNetworkHandlerMixin",
     "CommandSuggestorMixin",
@@ -24,7 +23,6 @@
     "PlayerEntityMixin",
     "PlayerMoveC2SPacketAccessor",
     "RarityFilterPlacementModifierAccessor",
-    "ServerDebugSubscribersMixin",
     "ServerListAccessor",
     "StructureVoidBlockMixin",
     "TexturedRenderLayersMixin",
