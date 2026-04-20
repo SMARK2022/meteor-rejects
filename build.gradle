@@ -1,12 +1,11 @@
 plugins {
 	id 'java'
-	id 'fabric-loom' version '1.14-SNAPSHOT'
+	id 'fabric-loom' version '1.14.10'
 }
 
 java {
-	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
-	}
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
 }
 
 base {
@@ -24,6 +23,18 @@ repositories {
 	maven { url "https://maven-snapshots.seedfinding.com/" }
 	maven { url 'https://jitpack.io' }
 	maven { url 'https://maven.duti.dev/releases' }
+	// Required for meteor-client transitive deps (Litematica, MaLiLib)
+	exclusiveContent {
+		forRepository {
+			maven { url 'https://api.modrinth.com/maven' }
+		}
+		filter { includeGroup 'maven.modrinth' }
+	}
+	maven {
+		name = 'MaLiLib Maven'
+		url = 'https://masa.dy.fi/maven/sakura-ryoko'
+		content { includeGroupAndSubgroups('fi.dy.masa') }
+	}
 }
 
 loom {
@@ -43,7 +54,7 @@ dependencies {
 	extraLibs('dev.duti.acheong:cubiomes:1.22.3:windows64') { transitive = false }
 	// To change the versions see the gradle.properties file
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
-	mappings loom.officialMojangMappings()
+	mappings "net.fabricmc:yarn:${project.yarn_version}:v2"
 	modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
 	modImplementation("meteordevelopment:meteor-client:${project.minecraft_version}-SNAPSHOT")
