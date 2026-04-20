@@ -18,7 +18,6 @@
     "modules.AutoSignMixin",
     "modules.FlightMixin",
     "modules.InventoryTweaksMixin",
-    "modules.KillAuraMixin",
     "modules.NoRenderMixin",
     "modules.ServerSpoofMixin"
   ]
