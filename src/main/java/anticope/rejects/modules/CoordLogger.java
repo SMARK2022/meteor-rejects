@@ -10,16 +10,16 @@ import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.player.ChatUtils;
 import meteordevelopment.meteorclient.utils.player.PlayerUtils;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.ChatFormatting;
-import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.protocol.game.ClientboundLevelEventPacket;
-import net.minecraft.network.protocol.game.ClientboundTeleportEntityPacket;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.TamableAnimal;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.passive.TameableEntity;
+import net.minecraft.network.packet.s2c.play.EntityPositionS2CPacket;
+import net.minecraft.network.packet.s2c.play.WorldEventS2CPacket;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import java.util.UUID;
 
 public class CoordLogger extends Module {
@@ -94,28 +94,28 @@ public class CoordLogger extends Module {
     @EventHandler
     private void onPacketReceive(PacketEvent.Receive event) {
         // Teleports
-        if (event.packet instanceof ClientboundTeleportEntityPacket) {
-            ClientboundTeleportEntityPacket packet = (ClientboundTeleportEntityPacket) event.packet;
+        if (event.packet instanceof EntityPositionS2CPacket) {
+            EntityPositionS2CPacket packet = (EntityPositionS2CPacket) event.packet;
             
             try {
-                Entity entity = mc.level.getEntity(packet.id());
+                Entity entity = mc.world.getEntityById(packet.entityId());
                 
                 // Player teleport
                 if (entity.getType().equals(EntityType.PLAYER) && players.get()) {
-                    Vec3 packetPosition = packet.change().position();
-                    Vec3 playerPosition = new Vec3(entity.getX(), entity.getY(), entity.getZ());
+                    Vec3d packetPosition = packet.change().position();
+                    Vec3d playerPosition = new Vec3d(entity.getX(), entity.getY(), entity.getZ());
 
                     if (playerPosition.distanceTo(packetPosition) >= minDistance.get()) {
-                        info(formatMessage("Player '" + entity.getScoreboardName() + "' has teleported to ", packetPosition));
+                        info(formatMessage("Player '" + entity.getNameForScoreboard() + "' has teleported to ", packetPosition));
                     }
                 }
 
                 // World teleport
                 else if (entity.getType().equals(EntityType.WOLF) && wolves.get()) {
-                    Vec3 packetPosition = packet.change().position();
-                    Vec3 wolfPosition = new Vec3(entity.getX(), entity.getY(), entity.getZ());
+                    Vec3d packetPosition = packet.change().position();
+                    Vec3d wolfPosition = new Vec3d(entity.getX(), entity.getY(), entity.getZ());
 
-                    UUID ownerUuid = ((TamableAnimal) entity).getOwner() != null ? ((TamableAnimal) entity).getOwner().getUUID() : null;
+                    UUID ownerUuid = ((TameableEntity) entity).getOwner() != null ? ((TameableEntity) entity).getOwner().getUuid() : null;
 
                     if (ownerUuid != null && wolfPosition.distanceTo(packetPosition) >= minDistance.get()) {
                         info(formatMessage("Wolf has teleported to ", packetPosition));
@@ -124,14 +124,14 @@ public class CoordLogger extends Module {
             } catch(NullPointerException ignored) {}
             
         // World events
-        } else if (event.packet instanceof ClientboundLevelEventPacket) {
-            ClientboundLevelEventPacket worldEventS2CPacket = (ClientboundLevelEventPacket) event.packet;
+        } else if (event.packet instanceof WorldEventS2CPacket) {
+            WorldEventS2CPacket worldEventS2CPacket = (WorldEventS2CPacket) event.packet;
             
-            if (worldEventS2CPacket.isGlobalEvent()) {
+            if (worldEventS2CPacket.isGlobal()) {
                 // Min distance
                 if (PlayerUtils.distanceTo(worldEventS2CPacket.getPos()) <= minDistance.get()) return;
                 
-                switch (worldEventS2CPacket.getType()) {
+                switch (worldEventS2CPacket.getEventId()) {
                     case 1023:
                         if (withers.get()) info(formatMessage("Wither spawned at ", worldEventS2CPacket.getPos()));
                         break;
@@ -148,14 +148,14 @@ public class CoordLogger extends Module {
         }
     }
 
-    public MutableComponent formatMessage(String message, Vec3 coords) {
-        MutableComponent text = Component.literal(message);
+    public MutableText formatMessage(String message, Vec3d coords) {
+        MutableText text = Text.literal(message);
         text.append(ChatUtils.formatCoords(coords));
-        text.append(ChatFormatting.GRAY +".");
+        text.append(Formatting.GRAY +".");
         return text;
     }
 
-    public MutableComponent formatMessage(String message, BlockPos coords) {
-        return formatMessage(message, new Vec3(coords.getX(), coords.getY(), coords.getZ()));
+    public MutableText formatMessage(String message, BlockPos coords) {
+        return formatMessage(message, new Vec3d(coords.getX(), coords.getY(), coords.getZ()));
     }
 }

@@ -11,14 +11,14 @@ import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.player.FindItemResult;
 import meteordevelopment.meteorclient.utils.player.InvUtils;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.world.item.Items;
-import net.minecraft.tags.BlockTags;
-import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.block.Blocks;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.block.Block;
+import net.minecraft.block.BlockState;
+import net.minecraft.block.Blocks;
+import net.minecraft.item.Items;
+import net.minecraft.registry.tag.BlockTags;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec3d;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.util.Comparator;
@@ -57,16 +57,16 @@ public class MossBot extends Module {
             return;
         }
 
-        BlockPos bestBlock = BlockPos.withinManhattanStream(BlockPos.containing(mc.player.getEyePosition()), range.get(), range.get(), range.get())
-                .filter(b -> mc.player.getEyePosition().distanceTo(Vec3.atCenterOf(b)) <= range.get() && !mossMap.containsKey(b))
-                .map(b -> Pair.of(b.immutable(), getMossSpots(b)))
+        BlockPos bestBlock = BlockPos.streamOutwards(BlockPos.ofFloored(mc.player.getEyePos()), range.get(), range.get(), range.get())
+                .filter(b -> mc.player.getEyePos().distanceTo(Vec3d.ofCenter(b)) <= range.get() && !mossMap.containsKey(b))
+                .map(b -> Pair.of(b.toImmutable(), getMossSpots(b)))
                 .filter(p -> p.getRight() > 10)
                 .map(Pair::getLeft)
                 .max(Comparator.naturalOrder()).orElse(null);
 
         if (bestBlock != null) {
-            if (!mc.level.isEmptyBlock(bestBlock.above())) {
-                mc.gameMode.continueDestroyBlock(bestBlock.above(), Direction.UP);
+            if (!mc.world.isAir(bestBlock.up())) {
+                mc.interactionManager.updateBlockBreakingProgress(bestBlock.up(), Direction.UP);
             }
 
             WorldUtils.interact(bestBlock, findItemResult, rotate.get());
@@ -75,18 +75,18 @@ public class MossBot extends Module {
     }
 
     private int getMossSpots(BlockPos pos) {
-        Block block = mc.level.getBlockState(pos).getBlock();
+        Block block = mc.world.getBlockState(pos).getBlock();
         if ((block != Blocks.MOSS_BLOCK && block != Blocks.PALE_MOSS_BLOCK)
-                || mc.level.getBlockState(pos.above()).getDestroySpeed(mc.level, pos) != 0f) {
+                || mc.world.getBlockState(pos.up()).getHardness(mc.world, pos) != 0f) {
             return 0;
         }
 
-        return (int) BlockPos.withinManhattanStream(pos, 3, 4, 3)
-                .filter(b -> isMossGrowableOn(mc.level.getBlockState(b)) && mc.level.isEmptyBlock(b.above()))
+        return (int) BlockPos.streamOutwards(pos, 3, 4, 3)
+                .filter(b -> isMossGrowableOn(mc.world.getBlockState(b)) && mc.world.isAir(b.up()))
                 .count();
     }
 
     private boolean isMossGrowableOn(BlockState state) {
-        return state.is(BlockTags.MOSS_REPLACEABLE);
+        return state.isIn(BlockTags.MOSS_REPLACEABLE);
     }
 }

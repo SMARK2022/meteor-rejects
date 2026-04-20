@@ -8,10 +8,10 @@ import meteordevelopment.meteorclient.settings.Setting;
 import meteordevelopment.meteorclient.settings.SettingGroup;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.network.protocol.game.ServerboundInteractPacket;
-import net.minecraft.world.entity.vehicle.boat.AbstractBoat;
-import net.minecraft.world.entity.vehicle.minecart.AbstractMinecart;
-import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.entity.vehicle.AbstractBoatEntity;
+import net.minecraft.entity.vehicle.AbstractMinecartEntity;
+import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket;
+import net.minecraft.util.hit.EntityHitResult;
 
 public class VehicleOneHit extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -34,14 +34,14 @@ public class VehicleOneHit extends Module {
     @EventHandler
     private void onPacketSend(PacketEvent.Send event) {
         if (sending) return;
-        if (!(event.packet instanceof ServerboundInteractPacket)
-            || !(mc.hitResult instanceof EntityHitResult ehr)
-            || (!(ehr.getEntity() instanceof AbstractMinecart) && !(ehr.getEntity() instanceof AbstractBoat))
+        if (!(event.packet instanceof PlayerInteractEntityC2SPacket)
+            || !(mc.crosshairTarget instanceof EntityHitResult ehr)
+            || (!(ehr.getEntity() instanceof AbstractMinecartEntity) && !(ehr.getEntity() instanceof AbstractBoatEntity))
         ) return;
 
         sending = true;
         for (int i = 0; i < amount.get() - 1; i++) {
-            mc.player.connection.getConnection().send(event.packet, null);
+            mc.player.networkHandler.getConnection().send(event.packet, null);
         }
         sending = false;
     }

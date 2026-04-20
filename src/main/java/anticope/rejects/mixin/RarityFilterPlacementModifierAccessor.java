@@ -1,10 +1,10 @@
 package anticope.rejects.mixin;
 
-import net.minecraft.world.level.levelgen.placement.RarityFilter;
+import net.minecraft.world.gen.placementmodifier.RarityFilterPlacementModifier;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
-@Mixin(RarityFilter.class)
+@Mixin(RarityFilterPlacementModifier.class)
 public interface RarityFilterPlacementModifierAccessor {
     @Accessor
     int getChance();

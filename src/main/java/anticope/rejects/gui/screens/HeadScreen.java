@@ -14,14 +14,14 @@ import meteordevelopment.meteorclient.settings.Settings;
 import meteordevelopment.meteorclient.utils.network.Http;
 import meteordevelopment.meteorclient.utils.network.MeteorExecutor;
 import meteordevelopment.meteorclient.utils.player.ChatUtils;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.IntArrayTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.CustomData;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtIntArray;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.text.Text;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -86,7 +86,7 @@ public class HeadScreen extends WindowScreen {
             WTable t = theme.table();
             for (ItemStack head : heads) {
                 t.add(theme.item(head));
-                t.add(theme.label(head.getHoverName().getString()));
+                t.add(theme.label(head.getName().getString()));
                 WButton give = t.add(theme.button("Give")).widget();
                 give.action = () -> {
                     try {
@@ -98,7 +98,7 @@ public class HeadScreen extends WindowScreen {
                 WButton equip = t.add(theme.button("Equip")).widget();
                 equip.tooltip = "Equip client-side.";
                 equip.action = () -> {
-                    mc.player.getInventory().setItem(39, head); // 39 is helmet slot (36 + 3)
+                    mc.player.getInventory().setStack(39, head); // 39 is helmet slot (36 + 3)
                 };
                 t.row();
             }
@@ -108,26 +108,26 @@ public class HeadScreen extends WindowScreen {
     }
 
     private ItemStack createHeadStack(String uuid, String value, String name) {
-        ItemStack head = Items.PLAYER_HEAD.getDefaultInstance();
-        CompoundTag tag = new CompoundTag();
-        CompoundTag skullOwner = new CompoundTag();
+        ItemStack head = Items.PLAYER_HEAD.getDefaultStack();
+        NbtCompound tag = new NbtCompound();
+        NbtCompound skullOwner = new NbtCompound();
         UUID parsedUuid = UUID.fromString(uuid);
-        skullOwner.put("Id", new IntArrayTag(new int[]{
+        skullOwner.put("Id", new NbtIntArray(new int[]{
             (int)(parsedUuid.getMostSignificantBits() >> 32),
             (int)parsedUuid.getMostSignificantBits(),
             (int)(parsedUuid.getLeastSignificantBits() >> 32),
             (int)parsedUuid.getLeastSignificantBits()
         }));
-        CompoundTag properties = new CompoundTag();
-        ListTag textures = new ListTag();
-        CompoundTag Value = new CompoundTag();
-        Value.put("Value", net.minecraft.nbt.StringTag.valueOf(value));
+        NbtCompound properties = new NbtCompound();
+        NbtList textures = new NbtList();
+        NbtCompound Value = new NbtCompound();
+        Value.put("Value", net.minecraft.nbt.NbtString.of(value));
         textures.add(Value);
         properties.put("textures", textures);
         skullOwner.put("Properties", properties);
         tag.put("SkullOwner", skullOwner);
-        head.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
-        head.set(DataComponents.CUSTOM_NAME, Component.literal(name));
+        head.set(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(tag));
+        head.set(DataComponentTypes.CUSTOM_NAME, Text.literal(name));
         return head;
     }
 

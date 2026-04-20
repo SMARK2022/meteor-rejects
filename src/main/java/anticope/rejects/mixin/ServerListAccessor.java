@@ -4,11 +4,11 @@ import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
 import java.util.List;
-import net.minecraft.client.multiplayer.ServerData;
-import net.minecraft.client.multiplayer.ServerList;
+import net.minecraft.client.network.ServerInfo;
+import net.minecraft.client.option.ServerList;
 
 @Mixin(ServerList.class)
 public interface ServerListAccessor {
     @Accessor
-    List<ServerData> getServerList();
+    List<ServerInfo> getServers();
 }

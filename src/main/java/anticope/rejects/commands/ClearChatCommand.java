@@ -2,7 +2,7 @@ package anticope.rejects.commands;
 
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import meteordevelopment.meteorclient.commands.Command;
-import net.minecraft.commands.SharedSuggestionProvider;
+import net.minecraft.command.CommandSource;
 
 public class ClearChatCommand extends Command {
     public ClearChatCommand() {
@@ -10,9 +10,9 @@ public class ClearChatCommand extends Command {
     }
 
     @Override
-    public void build(LiteralArgumentBuilder<SharedSuggestionProvider> builder) {
+    public void build(LiteralArgumentBuilder<CommandSource> builder) {
         builder.executes(context -> {
-            mc.gui.getChat().clearMessages(false);
+            mc.inGameHud.getChatHud().clear(false);
             return SINGLE_SUCCESS;
         });
     }

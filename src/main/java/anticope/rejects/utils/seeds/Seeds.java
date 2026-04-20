@@ -9,13 +9,13 @@ import meteordevelopment.meteorclient.systems.System;
 import meteordevelopment.meteorclient.systems.config.Config;
 import meteordevelopment.meteorclient.utils.Utils;
 import meteordevelopment.meteorclient.utils.player.ChatUtils;
-import net.minecraft.ChatFormatting;
-import net.minecraft.client.multiplayer.ServerData;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.HoverEvent;
-import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.client.network.ServerInfo;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.text.ClickEvent;
+import net.minecraft.text.HoverEvent;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
 import static meteordevelopment.meteorclient.MeteorClient.mc;
 
@@ -35,18 +35,18 @@ public class Seeds extends System<Seeds> {
     }
 
     public Seed getSeed() {
-        if (mc.hasSingleplayerServer() && mc.getSingleplayerServer() != null) {
-            MCVersion version = MCVersion.fromString(mc.getSingleplayerServer().getServerVersion());
+        if (mc.isIntegratedServerRunning() && mc.getServer() != null) {
+            MCVersion version = MCVersion.fromString(mc.getServer().getVersion());
             if (version == null)
                 version = MCVersion.latest();
-            return new Seed(mc.getSingleplayerServer().overworld().getSeed(), version);
+            return new Seed(mc.getServer().getOverworld().getSeed(), version);
         }
 
         return seeds.get(Utils.getWorldName());
     }
 
     public void setSeed(String seed, MCVersion version) {
-        if (mc.hasSingleplayerServer()) return;
+        if (mc.isIntegratedServerRunning()) return;
 
         long numSeed = toSeed(seed);
         seeds.put(Utils.getWorldName(), new Seed(numSeed, version));
@@ -54,9 +54,9 @@ public class Seeds extends System<Seeds> {
     }
 
     public void setSeed(String seed) {
-        if (mc.hasSingleplayerServer()) return;
+        if (mc.isIntegratedServerRunning()) return;
 
-        ServerData server = mc.getCurrentServer();
+        ServerInfo server = mc.getCurrentServerEntry();
         MCVersion ver = null;
         if (server != null)
             ver = MCVersion.fromString(server.version.getString());
@@ -70,8 +70,8 @@ public class Seeds extends System<Seeds> {
     }
 
     @Override
-    public CompoundTag toTag() {
-        CompoundTag tag = new CompoundTag();
+    public NbtCompound toTag() {
+        NbtCompound tag = new NbtCompound();
         seeds.forEach((key, seed) -> {
             if (seed == null) return;
             tag.put(key, seed.toTag());
@@ -80,8 +80,8 @@ public class Seeds extends System<Seeds> {
     }
 
     @Override
-    public Seeds fromTag(CompoundTag tag) {
-        tag.keySet().forEach(key -> {
+    public Seeds fromTag(NbtCompound tag) {
+        tag.getKeys().forEach(key -> {
             tag.getCompound(key).ifPresent(compound -> seeds.put(key, Seed.fromTag(compound)));
         });
         return this;
@@ -97,17 +97,17 @@ public class Seeds extends System<Seeds> {
     }
 
     private static void sendInvalidVersionWarning(String seed, String targetVer) {
-        MutableComponent msg = Component.literal(String.format("Couldn't resolve minecraft version \"%s\". Using %s instead. If you wish to change the version run: ", targetVer, MCVersion.latest().name));
+        MutableText msg = Text.literal(String.format("Couldn't resolve minecraft version \"%s\". Using %s instead. If you wish to change the version run: ", targetVer, MCVersion.latest().name));
         String cmd = String.format("%sseed %s ", Config.get().prefix, seed);
-        MutableComponent cmdText = Component.literal(cmd+"<version>");
+        MutableText cmdText = Text.literal(cmd+"<version>");
         cmdText.setStyle(cmdText.getStyle()
-            .withUnderlined(true)
+            .withUnderline(true)
             .withClickEvent(new ClickEvent.SuggestCommand(cmd))
-            .withHoverEvent(new HoverEvent.ShowText(Component.literal("run command")))
+            .withHoverEvent(new HoverEvent.ShowText(Text.literal("run command")))
         );
         msg.append(cmdText);
         msg.setStyle(msg.getStyle()
-            .withColor(ChatFormatting.YELLOW)
+            .withColor(Formatting.YELLOW)
         );
         ChatUtils.sendMsg("Seed", msg);
     }

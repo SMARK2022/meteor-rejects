@@ -3,13 +3,13 @@ package anticope.rejects.utils.server;
 import anticope.rejects.MeteorRejectsAddon;
 import java.net.UnknownHostException;
 import java.util.concurrent.atomic.AtomicInteger;
-import net.minecraft.client.multiplayer.ServerData;
-import net.minecraft.client.multiplayer.ServerStatusPinger;
-import net.minecraft.server.network.EventLoopGroupHolder;
+import net.minecraft.client.network.MultiplayerServerListPinger;
+import net.minecraft.client.network.ServerInfo;
+import net.minecraft.network.NetworkingBackend;
 
 public class LegacyServerPinger {
     private static final AtomicInteger threadNumber = new AtomicInteger(0);
-    private ServerData server;
+    private ServerInfo server;
     private boolean done = false;
     private boolean failed = false;
 
@@ -18,18 +18,18 @@ public class LegacyServerPinger {
     }
 
     public void ping(String ip, int port) {
-        server = new ServerData("", ip + ":" + port, ServerData.Type.OTHER);
+        server = new ServerInfo("", ip + ":" + port, ServerInfo.ServerType.OTHER);
 
         new Thread(() -> pingInCurrentThread(ip, port),
                 "Server Pinger #" + threadNumber.incrementAndGet()).start();
     }
 
     private void pingInCurrentThread(String ip, int port) {
-        ServerStatusPinger pinger = new ServerStatusPinger();
+        MultiplayerServerListPinger pinger = new MultiplayerServerListPinger();
         MeteorRejectsAddon.LOG.info("Pinging {}:{}...", ip, port);
 
         try {
-            pinger.pingServer(server, () -> {}, () -> {}, EventLoopGroupHolder.remote(false));
+            pinger.add(server, () -> {}, () -> {}, NetworkingBackend.remote(false));
             MeteorRejectsAddon.LOG.info("Ping successful: {}:{}", ip, port);
 
         } catch (UnknownHostException e) {
@@ -41,7 +41,7 @@ public class LegacyServerPinger {
             failed = true;
         }
 
-        pinger.removeAll();
+        pinger.cancel();
         done = true;
     }
 
@@ -54,6 +54,6 @@ public class LegacyServerPinger {
     }
 
     public String getServerIP() {
-        return server.ip;
+        return server.address;
     }
 }

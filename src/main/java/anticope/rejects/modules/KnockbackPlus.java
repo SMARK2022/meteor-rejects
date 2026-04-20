@@ -10,12 +10,12 @@ import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.systems.modules.Modules;
 import meteordevelopment.meteorclient.systems.modules.combat.KillAura;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.network.protocol.game.ServerboundInteractPacket;
-import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
-import net.minecraft.world.InteractionHand;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
+import net.minecraft.network.packet.c2s.play.PlayerInteractEntityC2SPacket;
+import net.minecraft.util.Hand;
+import net.minecraft.util.math.Vec3d;
 import org.jspecify.annotations.NonNull;
 
 public class KnockbackPlus extends Module {
@@ -34,24 +34,24 @@ public class KnockbackPlus extends Module {
 
     @EventHandler
     private void onSendPacket(PacketEvent.Send event) {
-        if (event.packet instanceof ServerboundInteractPacket packet) {
-            packet.dispatch(new ServerboundInteractPacket.Handler() {
+        if (event.packet instanceof PlayerInteractEntityC2SPacket packet) {
+            packet.handle(new PlayerInteractEntityC2SPacket.Handler() {
                 @Override
-                public void onInteraction(@NonNull InteractionHand interactionHand) {
+                public void interact(@NonNull Hand interactionHand) {
                 }
 
                 @Override
-                public void onInteraction(@NonNull InteractionHand interactionHand, @NonNull Vec3 vec3) {
+                public void interactAt(@NonNull Hand interactionHand, @NonNull Vec3d vec3) {
                 }
 
                 @Override
-                public void onAttack() {
+                public void attack() {
                     Entity entity = ((IPlayerInteractEntityC2SPacket) packet).meteor$getEntity();
                     if (!(entity instanceof LivingEntity) || (entity != Modules.get().get(KillAura.class).getTarget() && ka.get()))
                         return;
 
                     assert mc.player != null;
-                    mc.player.connection.send(new ServerboundPlayerCommandPacket(mc.player, ServerboundPlayerCommandPacket.Action.START_SPRINTING));
+                    mc.player.networkHandler.sendPacket(new ClientCommandC2SPacket(mc.player, ClientCommandC2SPacket.Mode.START_SPRINTING));
                 }
             });
         }

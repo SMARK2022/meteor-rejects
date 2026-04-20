@@ -7,16 +7,16 @@ import meteordevelopment.meteorclient.gui.WindowScreen;
 import meteordevelopment.meteorclient.gui.widgets.containers.WTable;
 import meteordevelopment.meteorclient.gui.widgets.pressable.WCheckbox;
 import meteordevelopment.meteorclient.utils.render.color.Color;
-import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
-import net.minecraft.client.gui.screens.multiplayer.ServerSelectionList;
-import net.minecraft.client.multiplayer.ServerData;
+import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.gui.screen.multiplayer.MultiplayerScreen;
+import net.minecraft.client.gui.screen.multiplayer.MultiplayerServerListWidget;
+import net.minecraft.client.network.ServerInfo;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 public class CleanUpScreen extends WindowScreen {
-    private final JoinMultiplayerScreen multiplayerScreen;
+    private final MultiplayerScreen multiplayerScreen;
     private final WCheckbox removeAll;
     private final WCheckbox removeFailed;
     private final WCheckbox removeOutdated;
@@ -25,7 +25,7 @@ public class CleanUpScreen extends WindowScreen {
     private final WCheckbox removeDuplicates;
     private final WCheckbox rename;
 
-    public CleanUpScreen(GuiTheme theme, JoinMultiplayerScreen multiplayerScreen, Screen parent) {
+    public CleanUpScreen(GuiTheme theme, MultiplayerScreen multiplayerScreen, Screen parent) {
         super(theme, "Clean Up");
         this.multiplayerScreen = multiplayerScreen;
         this.parent = parent;
@@ -69,54 +69,54 @@ public class CleanUpScreen extends WindowScreen {
 
     private void cleanUp() {
         Set<String> knownIPs = new HashSet<>();
-        List<ServerData> servers = ((ServerListAccessor) multiplayerScreen.getServers()).getServerList();
-        for (ServerData server : servers.toArray(ServerData[]::new)) {
+        List<ServerInfo> servers = ((ServerListAccessor) multiplayerScreen.getServerList()).getServers();
+        for (ServerInfo server : servers.toArray(ServerInfo[]::new)) {
             if (removeAll.checked || shouldRemove(server, knownIPs))
                 servers.remove(server);
         }
 
         if (rename.checked)
             for (int i = 0; i < servers.size(); i++) {
-                ServerData server = servers.get(i);
+                ServerInfo server = servers.get(i);
                 server.name = "Server discovery " + (i + 1);
             }
 
         saveServerList();
-        minecraft.setScreen(parent);
+        client.setScreen(parent);
     }
 
-    private boolean shouldRemove(ServerData server, Set<String> knownIPs) {
+    private boolean shouldRemove(ServerInfo server, Set<String> knownIPs) {
         return server != null && (removeUnknown.checked && isUnknownHost(server)
                 || removeOutdated.checked && !isSameProtocol(server)
                 || removeFailed.checked && isFailedPing(server)
                 || removeGriefMe.checked && isGriefMeServer(server)
-                || removeDuplicates.checked && !knownIPs.add(server.ip));
+                || removeDuplicates.checked && !knownIPs.add(server.address));
     }
 
-    private boolean isUnknownHost(ServerData server) {
-        if (server.motd == null || server.motd.getString() == null) return false;
+    private boolean isUnknownHost(ServerInfo server) {
+        if (server.label == null || server.label.getString() == null) return false;
 
-        return server.motd.getString().equals("\u00a74Can't resolve hostname");
+        return server.label.getString().equals("\u00a74Can't resolve hostname");
     }
 
-    private boolean isSameProtocol(ServerData server) {
-        return server.protocol == net.minecraft.SharedConstants.getCurrentVersion().protocolVersion();
+    private boolean isSameProtocol(ServerInfo server) {
+        return server.protocolVersion == net.minecraft.SharedConstants.getGameVersion().protocolVersion();
     }
 
-    private boolean isFailedPing(ServerData server) {
+    private boolean isFailedPing(ServerInfo server) {
         return server.ping != -2L && server.ping < 0L;
     }
 
-    private boolean isGriefMeServer(ServerData server) {
+    private boolean isGriefMeServer(ServerInfo server) {
         return server.name != null && server.name.startsWith("Server discovery ");
     }
 
     private void saveServerList() {
-        multiplayerScreen.getServers().save();
+        multiplayerScreen.getServerList().saveFile();
 
-        ServerSelectionList serverListSelector = ((MultiplayerScreenAccessor) multiplayerScreen).getServerListWidget();
+        MultiplayerServerListWidget serverListSelector = ((MultiplayerScreenAccessor) multiplayerScreen).getServerListWidget();
 
         serverListSelector.setSelected(null);
-        serverListSelector.updateOnlineServers(multiplayerScreen.getServers());
+        serverListSelector.setServers(multiplayerScreen.getServerList());
     }
 }

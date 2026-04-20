@@ -13,8 +13,8 @@ import baritone.api.utils.BlockOptionalMetaLookup;
 import baritone.pathing.movement.CalculationContext;
 import baritone.process.MineProcess;
 import meteordevelopment.meteorclient.systems.modules.Modules;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.block.BlockState;
+import net.minecraft.util.math.BlockPos;
 
 @Mixin(MineProcess.class)
 public class MineProcessMixin {
@@ -30,7 +30,8 @@ public class MineProcessMixin {
         ci.cancel();
     }
 
-    @Redirect(method = "a(Lbaritone/pathing/movement/CalculationContext;Lbaritone/api/utils/BlockOptionalMetaLookup;Ljava/util/List;Lnet/minecraft/core/BlockPos;)Z",
+    @Redirect(method = "a(Lbaritone/pathing/movement/CalculationContext;Lbaritone/api/utils/BlockOptionalMetaLookup;Ljava/util/List;Lnet/minecraft/util/math/BlockPos;)Z",
+            remap = false,
             at= @At(value = "INVOKE", target = "Lbaritone/api/utils/BlockOptionalMetaLookup;has(Lnet/minecraft/world/level/block/state/BlockState;)Z"))
     private static boolean onPruneStream(BlockOptionalMetaLookup instance, BlockState blockState) {
         OreSim oreSim = Modules.get().get(OreSim.class);

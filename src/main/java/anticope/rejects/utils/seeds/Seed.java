@@ -1,14 +1,14 @@
 package anticope.rejects.utils.seeds;
 
 import com.seedfinding.mccore.version.MCVersion;
-import net.minecraft.ChatFormatting;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.LongTag;
-import net.minecraft.nbt.StringTag;
-import net.minecraft.network.chat.ClickEvent;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.HoverEvent;
-import net.minecraft.network.chat.MutableComponent;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtLong;
+import net.minecraft.nbt.NbtString;
+import net.minecraft.text.ClickEvent;
+import net.minecraft.text.HoverEvent;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 
 public class Seed {
     public final Long seed;
@@ -21,25 +21,25 @@ public class Seed {
         this.version = version;
     }
 
-    public CompoundTag toTag() {
-        CompoundTag tag = new CompoundTag();
-        tag.put("seed", LongTag.valueOf(seed));
-        tag.put("version", StringTag.valueOf(version.name));
+    public NbtCompound toTag() {
+        NbtCompound tag = new NbtCompound();
+        tag.put("seed", NbtLong.of(seed));
+        tag.put("version", NbtString.of(version.name));
         return tag;
     }
 
-    public static Seed fromTag(CompoundTag tag) {
+    public static Seed fromTag(NbtCompound tag) {
         return new Seed(
             tag.getLong("seed").orElse(0L),
             MCVersion.fromString(tag.getString("version").orElse(""))
         );
     }
 
-    public Component toText() {
-        MutableComponent text = Component.literal(String.format("[%s%s%s] (%s)",
-            ChatFormatting.GREEN,
+    public Text toText() {
+        MutableText text = Text.literal(String.format("[%s%s%s] (%s)",
+            Formatting.GREEN,
             seed.toString(),
-            ChatFormatting.WHITE,
+            Formatting.WHITE,
             version.toString()
         ));
         text.setStyle(text.getStyle()
@@ -47,7 +47,7 @@ public class Seed {
                 seed.toString()
             ))
             .withHoverEvent(new HoverEvent.ShowText(
-                Component.literal("Copy to clipboard")
+                Text.literal("Copy to clipboard")
             ))
         );
         return text;

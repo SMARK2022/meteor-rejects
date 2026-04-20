@@ -6,20 +6,20 @@ import com.mojang.authlib.GameProfile;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import meteordevelopment.meteorclient.commands.Command;
-import net.minecraft.commands.SharedSuggestionProvider;
-import net.minecraft.core.component.DataComponentPatch;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.DoubleTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.CustomData;
-import net.minecraft.world.item.component.TypedEntityData;
+import net.minecraft.command.CommandSource;
+import net.minecraft.component.ComponentChanges;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.NbtComponent;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.TypedEntityData;
+import net.minecraft.item.BlockItem;
+import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtDouble;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.registry.Registries;
+import net.minecraft.text.Text;
 import java.util.Collection;
 
 import static anticope.rejects.utils.accounts.GetPlayerUUID.getUUID;
@@ -33,38 +33,38 @@ public class GiveCommand extends Command {
     }
 
     @Override
-    public void build(LiteralArgumentBuilder<SharedSuggestionProvider> builder) {
+    public void build(LiteralArgumentBuilder<CommandSource> builder) {
         // TODO : finish this
         builder.then(literal("egg").executes(ctx -> {
-            ItemStack inHand = mc.player.getMainHandItem();
+            ItemStack inHand = mc.player.getMainHandStack();
             ItemStack item = new ItemStack(Items.STRIDER_SPAWN_EGG);
-            CompoundTag ct = new CompoundTag();
+            NbtCompound ct = new NbtCompound();
 
             if (inHand.getItem() instanceof BlockItem) {
                 ct.putInt("Time", 1);
                 ct.putString("id", "minecraft:falling_block");
-                ct.put("BlockState", new CompoundTag());
+                ct.put("BlockState", new NbtCompound());
                 ct.getCompound("BlockState").ifPresent(compound ->
-                    compound.put("Name", net.minecraft.nbt.StringTag.valueOf(BuiltInRegistries.ITEM.getKey(inHand.getItem()).toString()))
+                    compound.put("Name", net.minecraft.nbt.NbtString.of(Registries.ITEM.getId(inHand.getItem()).toString()))
                 );
 
             } else {
                 ct.putString("id", "minecraft:item");
-                CompoundTag itemTag = new CompoundTag();
-                itemTag.putString("id", BuiltInRegistries.ITEM.getKey(inHand.getItem()).toString());
+                NbtCompound itemTag = new NbtCompound();
+                itemTag.putString("id", Registries.ITEM.getId(inHand.getItem()).toString());
                 itemTag.putInt("Count", inHand.getCount());
 
                 ct.put("Item", itemTag);
             }
-            CompoundTag t = new CompoundTag();
+            NbtCompound t = new NbtCompound();
             t.put("EntityTag", ct);
 
-            var changes = DataComponentPatch.builder()
-                    .set(DataComponents.CUSTOM_NAME, inHand.getHoverName())
-                    .set(DataComponents.CUSTOM_DATA, CustomData.of(t))
+            var changes = ComponentChanges.builder()
+                    .add(DataComponentTypes.CUSTOM_NAME, inHand.getName())
+                    .add(DataComponentTypes.CUSTOM_DATA, NbtComponent.of(t))
                     .build();
 
-            item.applyComponentsAndValidate(changes);
+            item.applyChanges(changes);
             GiveUtils.giveItem(item);
             return SINGLE_SUCCESS;
         }));
@@ -77,7 +77,7 @@ public class GiveCommand extends Command {
             .then(argument("pos", anticope.rejects.arguments.ClientPosArgumentType.pos())
                 .then(argument("message", StringArgumentType.greedyString()).executes(ctx -> {
                     String message = ctx.getArgument("message", String.class).replace("&", "\247");
-                    net.minecraft.world.phys.Vec3 pos = anticope.rejects.arguments.ClientPosArgumentType.getPos(ctx, "pos");
+                    net.minecraft.util.math.Vec3d pos = anticope.rejects.arguments.ClientPosArgumentType.getPos(ctx, "pos");
                     return createHolo(message, pos.x, pos.y, pos.z);
                 })))
         );
@@ -85,15 +85,15 @@ public class GiveCommand extends Command {
         builder.then(literal("bossbar").then(argument("message", StringArgumentType.greedyString()).executes(ctx -> {
             String message = ctx.getArgument("message", String.class).replace("&", "\247");
             ItemStack stack = new ItemStack(Items.BAT_SPAWN_EGG);
-            CompoundTag tag = new CompoundTag();
+            NbtCompound tag = new NbtCompound();
             tag.putBoolean("NoAI", true);
             tag.putBoolean("Silent", true);
             tag.putBoolean("PersistenceRequired", true);
             tag.putBoolean("Invulnerable", true);
 
             // Add invisibility potion effect
-            ListTag effects = new ListTag();
-            CompoundTag invisEffect = new CompoundTag();
+            NbtList effects = new NbtList();
+            NbtCompound invisEffect = new NbtCompound();
             invisEffect.putString("id", "minecraft:invisibility");
             invisEffect.putInt("amplifier", 0);
             invisEffect.putInt("duration", 2147483647); // Max int value for permanent effect
@@ -102,11 +102,11 @@ public class GiveCommand extends Command {
             effects.add(invisEffect);
             tag.put("active_effects", effects);
 
-            var changes = DataComponentPatch.builder()
-                    .set(DataComponents.CUSTOM_NAME, Component.literal(message))
-                    .set(DataComponents.ENTITY_DATA, TypedEntityData.of(EntityType.WITHER, tag))
+            var changes = ComponentChanges.builder()
+                    .add(DataComponentTypes.CUSTOM_NAME, Text.literal(message))
+                    .add(DataComponentTypes.ENTITY_DATA, TypedEntityData.create(EntityType.WITHER, tag))
                     .build();
-            stack.applyComponentsAndValidate(changes);
+            stack.applyChanges(changes);
 
             GiveUtils.giveItem(stack);
             return SINGLE_SUCCESS;
@@ -117,11 +117,11 @@ public class GiveCommand extends Command {
             String playerName = ctx.getArgument("owner", String.class);
             ItemStack itemStack = new ItemStack(Items.PLAYER_HEAD);
 
-            var changes = DataComponentPatch.builder()
-                    .set(DataComponents.PROFILE, net.minecraft.world.item.component.ResolvableProfile.createResolved(new GameProfile(getUUID(playerName), playerName)))
+            var changes = ComponentChanges.builder()
+                    .add(DataComponentTypes.PROFILE, net.minecraft.component.type.ProfileComponent.ofStatic(new GameProfile(getUUID(playerName), playerName)))
                     .build();
 
-            itemStack.applyComponentsAndValidate(changes);
+            itemStack.applyChanges(changes);
 
             GiveUtils.giveItem(itemStack);
             return SINGLE_SUCCESS;
@@ -136,12 +136,12 @@ public class GiveCommand extends Command {
 
     private int createHolo(String message, double x, double y, double z) throws com.mojang.brigadier.exceptions.CommandSyntaxException {
         ItemStack stack = new ItemStack(Items.STRIDER_SPAWN_EGG);
-        CompoundTag tag = new CompoundTag();
-        ListTag pos = new ListTag();
+        NbtCompound tag = new NbtCompound();
+        NbtList pos = new NbtList();
 
-        pos.add(DoubleTag.valueOf(x));
-        pos.add(DoubleTag.valueOf(y));
-        pos.add(DoubleTag.valueOf(z));
+        pos.add(NbtDouble.of(x));
+        pos.add(NbtDouble.of(y));
+        pos.add(NbtDouble.of(z));
 
         tag.put("Pos", pos);
         tag.putBoolean("Invisible", true);
@@ -149,12 +149,12 @@ public class GiveCommand extends Command {
         tag.putBoolean("NoGravity", true);
         tag.putBoolean("CustomNameVisible", true);
 
-        var changes = DataComponentPatch.builder()
-                .set(DataComponents.CUSTOM_NAME, Component.literal(message))
-                .set(DataComponents.ENTITY_DATA, TypedEntityData.of(EntityType.ARMOR_STAND, tag))
+        var changes = ComponentChanges.builder()
+                .add(DataComponentTypes.CUSTOM_NAME, Text.literal(message))
+                .add(DataComponentTypes.ENTITY_DATA, TypedEntityData.create(EntityType.ARMOR_STAND, tag))
                 .build();
 
-        stack.applyComponentsAndValidate(changes);
+        stack.applyChanges(changes);
         GiveUtils.giveItem(stack);
         return SINGLE_SUCCESS;
     }

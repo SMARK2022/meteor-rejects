@@ -10,7 +10,7 @@ import meteordevelopment.meteorclient.settings.BoolSetting;
 import meteordevelopment.meteorclient.settings.Setting;
 import meteordevelopment.meteorclient.settings.SettingGroup;
 import meteordevelopment.meteorclient.systems.modules.movement.Flight;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.util.math.Vec3d;
 
 import static meteordevelopment.meteorclient.MeteorClient.mc;
 
@@ -36,11 +36,11 @@ public class FlightMixin {
     private void onDeactivate(CallbackInfo ci) {
         if (mc.player == null || stopMomentum == null || !stopMomentum.get()) return;
 
-        mc.options.keyUp.setDown(false);
-        mc.options.keyLeft.setDown(false);
-        mc.options.keyDown.setDown(false);
-        mc.options.keyRight.setDown(false);
+        mc.options.forwardKey.setPressed(false);
+        mc.options.leftKey.setPressed(false);
+        mc.options.backKey.setPressed(false);
+        mc.options.rightKey.setPressed(false);
 
-        mc.player.setDeltaMovement(Vec3.ZERO);
+        mc.player.setVelocity(Vec3d.ZERO);
     }
 }

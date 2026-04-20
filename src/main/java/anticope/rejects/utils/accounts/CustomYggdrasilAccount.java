@@ -6,8 +6,8 @@ import com.mojang.authlib.minecraft.MinecraftSessionService;
 import meteordevelopment.meteorclient.systems.accounts.Account;
 import meteordevelopment.meteorclient.systems.accounts.AccountType;
 import meteordevelopment.meteorclient.utils.misc.NbtException;
-import net.minecraft.client.User;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.client.session.Session;
+import net.minecraft.nbt.NbtCompound;
 
 public class CustomYggdrasilAccount extends Account<CustomYggdrasilAccount> {
     private String password, server;
@@ -21,10 +21,10 @@ public class CustomYggdrasilAccount extends Account<CustomYggdrasilAccount> {
     @Override
     public boolean fetchInfo() {
         try {
-            User session = CustomYggdrasilLogin.login(name, password, server);
+            Session session = CustomYggdrasilLogin.login(name, password, server);
 
-            cache.username = session.getName();
-            cache.uuid = session.getProfileId().toString();
+            cache.username = session.getUsername();
+            cache.uuid = session.getUuidOrNull().toString();
 
             return true;
         } catch (AuthenticationException e) {
@@ -39,9 +39,9 @@ public class CustomYggdrasilAccount extends Account<CustomYggdrasilAccount> {
             MinecraftSessionService sessService = new CustomYggdrasilLogin.LocalYggdrasilMinecraftSessionService(service, service.server);
             applyLoginEnvironment(service);
 
-            User session = CustomYggdrasilLogin.login(name, password, server);
+            Session session = CustomYggdrasilLogin.login(name, password, server);
             setSession(session);
-            cache.username = session.getName();
+            cache.username = session.getUsername();
             cache.loadHead();
             return true;
         } catch (AuthenticationException e) {
@@ -53,8 +53,8 @@ public class CustomYggdrasilAccount extends Account<CustomYggdrasilAccount> {
     }
 
     @Override
-    public CompoundTag toTag() {
-        CompoundTag tag = super.toTag();
+    public NbtCompound toTag() {
+        NbtCompound tag = super.toTag();
 
         tag.putString("password", password);
         tag.putString("server", server);
@@ -63,7 +63,7 @@ public class CustomYggdrasilAccount extends Account<CustomYggdrasilAccount> {
     }
 
     @Override
-    public CustomYggdrasilAccount fromTag(CompoundTag tag) {
+    public CustomYggdrasilAccount fromTag(NbtCompound tag) {
         super.fromTag(tag);
         if (!tag.contains("password")) throw new NbtException();
 

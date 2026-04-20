@@ -5,7 +5,7 @@ import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.util.math.Vec3d;
 
 public class Boost extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -61,7 +61,7 @@ public class Boost extends Module {
     }
 
     private void boost() {
-        Vec3 v = mc.player.getForward().scale(strength.get());
-        mc.player.push(v.x(), v.y(), v.z());
+        Vec3d v = mc.player.getRotationVecClient().multiply(strength.get());
+        mc.player.addVelocity(v.getX(), v.getY(), v.getZ());
     }
 }

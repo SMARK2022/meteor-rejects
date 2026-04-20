@@ -6,14 +6,14 @@ import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.player.InvUtils;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.screens.inventory.AnvilScreen;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.world.inventory.AnvilMenu;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.BundleContents;
-import net.minecraft.world.item.component.ItemContainerContents;
+import net.minecraft.client.gui.screen.ingame.AnvilScreen;
+import net.minecraft.client.gui.widget.TextFieldWidget;
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.BundleContentsComponent;
+import net.minecraft.component.type.ContainerComponent;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
+import net.minecraft.screen.AnvilScreenHandler;
 import java.util.List;
 
 public class AutoRename extends Module {
@@ -76,9 +76,9 @@ public class AutoRename extends Module {
 
     @EventHandler
     private void onTick(TickEvent.Post ignoredEvent) {
-        if (mc.gameMode == null) return;
+        if (mc.interactionManager == null) return;
         if (items.get().isEmpty() && containerType.get() == ContainerType.NONE) return;
-        if (!(mc.player.containerMenu instanceof AnvilMenu)) return;
+        if (!(mc.player.currentScreenHandler instanceof AnvilScreenHandler)) return;
 
         if (delayLeft > 0) {
             delayLeft--;
@@ -87,19 +87,19 @@ public class AutoRename extends Module {
             delayLeft = delay.get();
         }
 
-        var slot0 = mc.player.containerMenu.getSlot(0);
-        var slot1 = mc.player.containerMenu.getSlot(1);
-        var slot2 = mc.player.containerMenu.getSlot(2);
-        if (slot1.hasItem()) {
+        var slot0 = mc.player.currentScreenHandler.getSlot(0);
+        var slot1 = mc.player.currentScreenHandler.getSlot(1);
+        var slot2 = mc.player.currentScreenHandler.getSlot(2);
+        if (slot1.hasStack()) {
             return; // second anvil slot occupied
         }
-        if (slot2.hasItem()) {
+        if (slot2.hasStack()) {
             if (mc.player.experienceLevel >= 1) {
                 extractNamed();
             }
         } else {
-            if (slot0.hasItem()) {
-                renameItem(slot0.getItem());
+            if (slot0.hasStack()) {
+                renameItem(slot0.getStack());
             } else {
                 populateAnvil();
             }
@@ -108,45 +108,45 @@ public class AutoRename extends Module {
 
     private boolean isContainerTarget(ItemStack st) {
         return switch (containerType.get()) {
-            case SHULKERS -> st.has(DataComponents.CONTAINER);
-            case BUNDLES  -> st.has(DataComponents.BUNDLE_CONTENTS);
-            case BOTH     -> st.has(DataComponents.CONTAINER) || st.has(DataComponents.BUNDLE_CONTENTS);
+            case SHULKERS -> st.contains(DataComponentTypes.CONTAINER);
+            case BUNDLES  -> st.contains(DataComponentTypes.BUNDLE_CONTENTS);
+            case BOTH     -> st.contains(DataComponentTypes.CONTAINER) || st.contains(DataComponentTypes.BUNDLE_CONTENTS);
             case NONE -> false;
         };
     }
 
     private void renameItem(ItemStack s) {
         String setname = isContainerTarget(s) ? getFirstItemName(s) : name.get();
-        if (!(mc.screen instanceof AnvilScreen)) {
+        if (!(mc.currentScreen instanceof AnvilScreen)) {
             error("Not anvil screen");
             toggle();
             return;
         }
-        var input = (EditBox) mc.screen.children().get(0);
-        input.setValue(setname);
+        var input = (TextFieldWidget) mc.currentScreen.children().get(0);
+        input.setText(setname);
     }
 
     private String getFirstItemName(ItemStack stack) {
-        ItemContainerContents container = stack.get(DataComponents.CONTAINER);
+        ContainerComponent container = stack.get(DataComponentTypes.CONTAINER);
         if (container != null) {
-            for (ItemStack item : container.nonEmptyItems()) {
-                return item.getHoverName().getString();
+            for (ItemStack item : container.iterateNonEmpty()) {
+                return item.getName().getString();
             }
         }
 
-        BundleContents bundle = stack.get(DataComponents.BUNDLE_CONTENTS);
+        BundleContentsComponent bundle = stack.get(DataComponentTypes.BUNDLE_CONTENTS);
         if (bundle != null) {
-            for (ItemStack item : bundle.items()) {
-                return item.getHoverName().getString();
+            for (ItemStack item : bundle.iterate()) {
+                return item.getName().getString();
             }
         }
         return "";
     }
 
     private void extractNamed() {
-        var inv = mc.player.containerMenu;
+        var inv = mc.player.currentScreenHandler;
         for (int i = 3; i < 38; i++) {
-            if (inv.getSlot(i).hasItem()) {
+            if (inv.getSlot(i).hasStack()) {
                 InvUtils.shiftClick().fromId(2).toId(i);
                 return;
             }
@@ -154,12 +154,12 @@ public class AutoRename extends Module {
     }
 
     private void populateAnvil() {
-        var inv = mc.player.containerMenu;
+        var inv = mc.player.currentScreenHandler;
         for (int i = 3; i < 38; i++) {
             var sl = inv.getSlot(i);
-            if (!sl.hasItem()) continue;
-            var st = sl.getItem();
-            boolean hasCustomName = st.getComponents().has(DataComponents.CUSTOM_NAME);
+            if (!sl.hasStack()) continue;
+            var st = sl.getStack();
+            boolean hasCustomName = st.getComponents().contains(DataComponentTypes.CUSTOM_NAME);
             boolean isRenameItem = items.get().contains(st.getItem()) &&
                     (name.get().isEmpty() ? hasCustomName : !hasCustomName);
             boolean isContainerItem = isContainerTarget(st) && !getFirstItemName(st).isEmpty();

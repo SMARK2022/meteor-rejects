@@ -5,13 +5,13 @@ import anticope.rejects.events.StopUsingItemEvent;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.client.multiplayer.ClientPacketListener;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.network.protocol.game.ServerboundMovePlayerPacket.Pos;
-import net.minecraft.network.protocol.game.ServerboundPlayerCommandPacket;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.client.network.ClientPlayNetworkHandler;
+import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.item.Item;
+import net.minecraft.item.Items;
+import net.minecraft.network.packet.c2s.play.ClientCommandC2SPacket;
+import net.minecraft.network.packet.c2s.play.PlayerMoveC2SPacket.PositionAndOnGround;
+import net.minecraft.util.math.Vec3d;
 
 public class ArrowDmg extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -42,17 +42,17 @@ public class ArrowDmg extends Module {
         if (!isValidItem(event.itemStack.getItem()))
             return;
 
-        LocalPlayer p = mc.player;
+        ClientPlayerEntity p = mc.player;
 
-        p.connection.send(
-                new ServerboundPlayerCommandPacket(p, ServerboundPlayerCommandPacket.Action.START_SPRINTING));
+        p.networkHandler.sendPacket(
+                new ClientCommandC2SPacket(p, ClientCommandC2SPacket.Mode.START_SPRINTING));
 
         double x = p.getX();
         double y = p.getY();
         double z = p.getZ();
 
         double adjustedStrength = strength.get() / 10.0 * Math.sqrt(500);
-        Vec3 lookVec = p.getViewVector(1).scale(adjustedStrength);
+        Vec3d lookVec = p.getRotationVec(1).multiply(adjustedStrength);
 
         for (int i = 0; i < 4; i++) {
             sendPos(x, y, z, true);
@@ -62,8 +62,8 @@ public class ArrowDmg extends Module {
     }
 
     private void sendPos(double x, double y, double z, boolean onGround) {
-        ClientPacketListener clientPacketListener = mc.player.connection;
-        clientPacketListener.send(new Pos(x, y, z, onGround, mc.player.horizontalCollision));
+        ClientPlayNetworkHandler clientPacketListener = mc.player.networkHandler;
+        clientPacketListener.sendPacket(new PositionAndOnGround(x, y, z, onGround, mc.player.horizontalCollision));
     }
 
     private boolean isValidItem(Item item) {

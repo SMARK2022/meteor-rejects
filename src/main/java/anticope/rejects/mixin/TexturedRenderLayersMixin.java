@@ -2,18 +2,18 @@ package anticope.rejects.mixin;
 
 import anticope.rejects.modules.Rendering;
 import meteordevelopment.meteorclient.systems.modules.Modules;
-import net.minecraft.client.renderer.blockentity.ChestRenderer;
+import net.minecraft.client.render.block.entity.ChestBlockEntityRenderer;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
 
-@Mixin(ChestRenderer.class)
+@Mixin(ChestBlockEntityRenderer.class)
 public class TexturedRenderLayersMixin {
     @ModifyArg(
-        method = "extractRenderState",
+        method = "updateRenderState",
         at = @At(
             value = "INVOKE",
-            target = "Lnet/minecraft/client/renderer/blockentity/ChestRenderer;getChestMaterial(Lnet/minecraft/world/level/block/entity/BlockEntity;Z)Lnet/minecraft/client/renderer/blockentity/state/ChestRenderState$ChestMaterialType;"
+            target = "Lnet/minecraft/client/render/block/entity/ChestBlockEntityRenderer;getVariant(Lnet/minecraft/block/entity/BlockEntity;Z)Lnet/minecraft/client/render/block/entity/state/ChestBlockEntityRenderState$Variant;"
         ),
         index = 1
     )

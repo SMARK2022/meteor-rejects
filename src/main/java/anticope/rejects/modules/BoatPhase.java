@@ -11,8 +11,8 @@ import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.systems.modules.Modules;
 import meteordevelopment.meteorclient.utils.player.PlayerUtils;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.world.entity.vehicle.boat.AbstractBoat;
-import net.minecraft.world.phys.Vec3;
+import net.minecraft.entity.vehicle.AbstractBoatEntity;
+import net.minecraft.util.math.Vec3d;
 
 public class BoatPhase extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -73,7 +73,7 @@ public class BoatPhase extends Module {
             .build()
     );
 
-    private AbstractBoat boat = null;
+    private AbstractBoatEntity boat = null;
 
     public BoatPhase() {
         super(MeteorRejectsAddon.CATEGORY, "boat-phase", "Phase through blocks using a boat.");
@@ -88,36 +88,36 @@ public class BoatPhase extends Module {
     @Override
     public void onDeactivate() {
         if (boat != null) {
-            boat.noPhysics = false;
+            boat.noClip = false;
         }
     }
 
     @EventHandler
     private void onBoatMove(BoatMoveEvent event) {
-        if (mc.player.getVehicle() instanceof AbstractBoat) {
+        if (mc.player.getVehicle() instanceof AbstractBoatEntity) {
             if (boat != mc.player.getVehicle()) {
                 if (boat != null) {
-                    boat.noPhysics = false;
+                    boat.noClip = false;
                 }
-                boat = (AbstractBoat) mc.player.getVehicle();
+                boat = (AbstractBoatEntity) mc.player.getVehicle();
             }
         } else boat = null;
 
         if (boat != null) {
-            boat.noPhysics = true;
+            boat.noClip = true;
             //boat.pushSpeedReduction = 1;
 
             if (lockYaw.get()) {
-                boat.setYRot(mc.player.getYRot());
+                boat.setYaw(mc.player.getYaw());
             }
 
-            Vec3 vel;
+            Vec3d vel;
 
             if (adjustHorizontalSpeed.get()) {
                 vel = PlayerUtils.getHorizontalVelocity(horizontalSpeed.get());
             }
             else {
-                vel = boat.getDeltaMovement();
+                vel = boat.getVelocity();
             }
 
             double velX = vel.x;
@@ -125,12 +125,12 @@ public class BoatPhase extends Module {
             double velZ = vel.z;
 
             if (verticalControl.get()) {
-                if (mc.options.keyJump.isDown()) velY += verticalSpeed.get() / 20;
-                if (mc.options.keySprint.isDown()) velY -= verticalSpeed.get() / 20;
+                if (mc.options.jumpKey.isPressed()) velY += verticalSpeed.get() / 20;
+                if (mc.options.sprintKey.isPressed()) velY -= verticalSpeed.get() / 20;
                 else if (fall.get()) velY -= fallSpeed.get() / 20;
             } else if (fall.get()) velY -= fallSpeed.get() / 20;
 
-            ((IVec3d) boat.getDeltaMovement()).meteor$set(velX,velY,velZ);
+            ((IVec3d) boat.getVelocity()).meteor$set(velX,velY,velZ);
         }
     }
 }

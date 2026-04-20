@@ -2,33 +2,33 @@ package anticope.rejects.settings;
 
 import meteordevelopment.meteorclient.settings.IVisible;
 import meteordevelopment.meteorclient.settings.Setting;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
-import net.minecraft.nbt.Tag;
-import net.minecraft.world.level.GameType;
+import net.minecraft.nbt.NbtCompound;
+import net.minecraft.nbt.NbtElement;
+import net.minecraft.nbt.NbtList;
+import net.minecraft.nbt.NbtString;
+import net.minecraft.world.GameMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class GameModeListSetting extends Setting<List<GameType>> {
-    public GameModeListSetting(String name, String description, List<GameType> defaultValue, Consumer<List<GameType>> onChanged, Consumer<Setting<List<GameType>>> onModuleActivated, IVisible visible) {
+public class GameModeListSetting extends Setting<List<GameMode>> {
+    public GameModeListSetting(String name, String description, List<GameMode> defaultValue, Consumer<List<GameMode>> onChanged, Consumer<Setting<List<GameMode>>> onModuleActivated, IVisible visible) {
         super(name, description, defaultValue, onChanged, onModuleActivated, visible);
     }
 
     @Override
-    protected List<GameType> parseImpl(String str) {
+    protected List<GameMode> parseImpl(String str) {
         String[] values = str.split(",");
-        List<GameType> modes = new ArrayList<>(values.length);
+        List<GameMode> modes = new ArrayList<>(values.length);
         for (String s : values) {
-            GameType mode = GameType.byName(s);
+            GameMode mode = GameMode.byId(s);
             if (mode != null) modes.add(mode);
         }
         return modes;
     }
 
     @Override
-    protected boolean isValueValid(List<GameType> value) {
+    protected boolean isValueValid(List<GameMode> value) {
         return true;
     }
 
@@ -38,10 +38,10 @@ public class GameModeListSetting extends Setting<List<GameType>> {
     }
 
     @Override
-    public CompoundTag save(CompoundTag tag) {
-        ListTag valueTag = new ListTag();
-        for (GameType mode : get()) {
-            valueTag.add(StringTag.valueOf(mode.getName()));
+    public NbtCompound save(NbtCompound tag) {
+        NbtList valueTag = new NbtList();
+        for (GameMode mode : get()) {
+            valueTag.add(NbtString.of(mode.getId()));
         }
         tag.put("value", valueTag);
 
@@ -49,13 +49,13 @@ public class GameModeListSetting extends Setting<List<GameType>> {
     }
 
     @Override
-    public List<GameType> load(CompoundTag tag) {
+    public List<GameMode> load(NbtCompound tag) {
         get().clear();
 
         tag.getList("value").ifPresent(valueTag -> {
-            for (Tag tagI : valueTag) {
+            for (NbtElement tagI : valueTag) {
                 tagI.asString().ifPresent(str -> {
-                    GameType mode = GameType.byName(str);
+                    GameMode mode = GameMode.byId(str);
                     if (mode != null)
                         get().add(mode);
                 });
@@ -65,12 +65,12 @@ public class GameModeListSetting extends Setting<List<GameType>> {
         return get();
     }
 
-    public static class Builder extends SettingBuilder<Builder, List<GameType>, GameModeListSetting> {
+    public static class Builder extends SettingBuilder<Builder, List<GameMode>, GameModeListSetting> {
         public Builder() {
             super(new ArrayList<>(0));
         }
 
-        public Builder defaultValue(List<GameType> map) {
+        public Builder defaultValue(List<GameMode> map) {
             this.defaultValue = map;
             return this;
         }

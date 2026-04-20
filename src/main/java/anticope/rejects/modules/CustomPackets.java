@@ -13,12 +13,12 @@ import meteordevelopment.meteorclient.settings.SettingGroup;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.player.ChatUtils;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.ChatFormatting;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.HoverEvent;
-import net.minecraft.network.chat.MutableComponent;
-import net.minecraft.network.protocol.common.ClientboundCustomPayloadPacket;
+import net.minecraft.network.PacketByteBuf;
+import net.minecraft.network.packet.s2c.common.CustomPayloadS2CPacket;
+import net.minecraft.text.HoverEvent;
+import net.minecraft.text.MutableText;
+import net.minecraft.text.Text;
+import net.minecraft.util.Formatting;
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
@@ -52,8 +52,8 @@ public class CustomPackets extends Module {
 
     @EventHandler
     private void onCustomPayloadPacket(PacketEvent.Receive event) {
-        if (event.packet instanceof ClientboundCustomPayloadPacket packet) {
-            if (packet.payload().type().toString().equals("badlion:mods")) {
+        if (event.packet instanceof CustomPayloadS2CPacket packet) {
+            if (packet.payload().getId().toString().equals("badlion:mods")) {
                 event.setCancelled(onBadlionModsPacket(packet));
             } else {
                 onUnknownPacket(packet);
@@ -61,19 +61,19 @@ public class CustomPackets extends Module {
         }
     }
 
-    FriendlyByteBuf buffer = new FriendlyByteBuf(Unpooled.buffer());
+    PacketByteBuf buffer = new PacketByteBuf(Unpooled.buffer());
 
-    private void onUnknownPacket(ClientboundCustomPayloadPacket packet) {
+    private void onUnknownPacket(CustomPayloadS2CPacket packet) {
         if (!unknownPackets.get()) return;
-        MutableComponent text = Component.literal(packet.payload().type().toString());
+        MutableText text = Text.literal(packet.payload().getId().toString());
         buffer.clear();
         text.setStyle(
-            text.getStyle().withHoverEvent(new HoverEvent.ShowText(Component.literal(readString(buffer))))
+            text.getStyle().withHoverEvent(new HoverEvent.ShowText(Text.literal(readString(buffer))))
         );
         info(text);
     }
 
-    private boolean onBadlionModsPacket(ClientboundCustomPayloadPacket packet) {
+    private boolean onBadlionModsPacket(CustomPayloadS2CPacket packet) {
         if (!mods.get()) return false;
         buffer.clear();
         String json = readString(buffer);
@@ -82,34 +82,34 @@ public class CustomPackets extends Module {
         return true;
     }
 
-    private MutableComponent format(String type, MutableComponent message) {
-        MutableComponent text = Component.literal(String.format("[%s%s%s]",
-                ChatFormatting.AQUA,
+    private MutableText format(String type, MutableText message) {
+        MutableText text = Text.literal(String.format("[%s%s%s]",
+                Formatting.AQUA,
                 type,
-                ChatFormatting.GRAY
+                Formatting.GRAY
         ));
         text.append(" ");
         text.append(message);
         return text;
     }
 
-    private String readString(FriendlyByteBuf data) {
+    private String readString(PacketByteBuf data) {
         return data.readCharSequence(
                 data.readableBytes(),
                 StandardCharsets.UTF_8
         ).toString();
     }
 
-    private MutableComponent formatMods(Map<String, BadlionMod> mods) {
-        MutableComponent text = Component.literal("Disallowed mods: \n");
+    private MutableText formatMods(Map<String, BadlionMod> mods) {
+        MutableText text = Text.literal("Disallowed mods: \n");
 
         mods.forEach((name, data) -> {
-            MutableComponent modLine = Component.literal(String.format("- %s%s%s ", ChatFormatting.YELLOW, name, ChatFormatting.GRAY));
+            MutableText modLine = Text.literal(String.format("- %s%s%s ", Formatting.YELLOW, name, Formatting.GRAY));
             modLine.append(data.disabled ? "disabled" : "enabled");
             modLine.append("\n");
             if (data.extra_data != null) {
                 modLine.setStyle(modLine.getStyle()
-                        .withHoverEvent(new HoverEvent.ShowText(Component.literal(data.extra_data.toString()))));
+                        .withHoverEvent(new HoverEvent.ShowText(Text.literal(data.extra_data.toString()))));
             }
             text.append(modLine);
         });

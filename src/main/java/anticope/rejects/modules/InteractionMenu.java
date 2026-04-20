@@ -9,10 +9,10 @@ import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.misc.Keybind;
 import meteordevelopment.meteorclient.utils.misc.MeteorStarscript;
 import meteordevelopment.meteorclient.utils.render.color.SettingColor;
-import net.minecraft.client.renderer.debug.DebugRenderer;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.client.render.debug.DebugRenderer;
+import net.minecraft.entity.Entity;
+import net.minecraft.entity.EntityType;
+import net.minecraft.entity.LivingEntity;
 import org.meteordev.starscript.value.Value;
 import org.meteordev.starscript.value.ValueMap;
 import java.util.Map;
@@ -88,10 +88,10 @@ public class InteractionMenu extends Module {
     }
 
     public void onKey() {
-        if (mc.player == null || mc.screen != null) return;
+        if (mc.player == null || mc.currentScreen != null) return;
         Entity e = null;
         if (useCrosshairTarget.get()) {
-            e = mc.crosshairPickEntity;
+            e = mc.targetedEntity;
         } else {
             Optional<Entity> lookingAt = DebugRenderer.getTargetedEntity(mc.player, 20);
             if (lookingAt.isPresent()) {
@@ -128,7 +128,7 @@ public class InteractionMenu extends Module {
                         .set("y", Value.number(entity.getY()))
                         .set("z", Value.number(entity.getZ()))
                 ))
-                .set("uuid", Value.string(entity.getStringUUID()))
+                .set("uuid", Value.string(entity.getUuidAsString()))
         );
     }
 
