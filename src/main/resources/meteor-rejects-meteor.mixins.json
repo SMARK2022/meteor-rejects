@@ -18,7 +18,6 @@
     "modules.AutoSignMixin",
     "modules.FlightMixin",
     "modules.InventoryTweaksMixin",
-    "modules.NoRenderMixin",
-    "modules.ServerSpoofMixin"
+    "modules.NoRenderMixin"
   ]
 }

@@ -12,7 +12,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class InventoryTweaksMixin implements IInventoryTweaks {
     private Runnable callback;
 
-    @Inject(method = "lambda$steal$4", at = @At("RETURN"))
+    // Use stable methods instead of compiler-generated lambda names; lambda ordinals drift between Meteor updates.
+    @Inject(method = "steal", at = @At("RETURN"))
     private void afterSteal(ScreenHandler handler, CallbackInfo info) {
         if (callback != null) {
             callback.run();
@@ -25,8 +26,8 @@ public abstract class InventoryTweaksMixin implements IInventoryTweaks {
         this.callback = callback;
     }
 
-    @Inject(method = "lambda$new$1", at = @At("HEAD"))
-    private void onStealChanged(Boolean b, CallbackInfo info) {
+    @Inject(method = "checkAutoStealSettings", at = @At("HEAD"))
+    private void onStealChanged(CallbackInfo info) {
         callback = null;
     }
 }

@@ -64,15 +64,4 @@ public class ServerSpoofMixin extends Module {
         );
     }
 
-    @Inject(method = "onActivate", at = @At("TAIL"))
-    private void onActivate(CallbackInfo ci) {
-        if (!EP_LOADED) return;
-        ExploitPreventerCompat.applyAll(translationKey.get(), fingerprinting.get(), localHTTPRequest.get());
-    }
-
-    @Inject(method = "onDeactivate", at = @At("TAIL"), remap = false)
-    private void onDeactivate(CallbackInfo ci) {
-        if (!EP_LOADED) return;
-        ExploitPreventerCompat.disableAll();
-    }
 }
